@@ -1,0 +1,29 @@
+import hudson.model.*
+import hudson.EnvVars
+
+def list = manager.build.logFile.readLines()
+def ChangeSet,User,Date
+ list.each {
+if(it.contains("Changeset:"))
+ChangeSet = it
+if(it.contains("User:"))
+User = it
+if(it.contains("Date:"))
+Date = it
+}
+
+User = User.split(":")[1]
+
+build = Thread.currentThread().executable
+
+String jobName = build.project.getName()
+job = Hudson.instance.getJob(jobName)
+build_number = job.getLastBuild().getEnvironment()["BUILD_NUMBER"]
+
+def sampleval="D:\\Jenkins\\jobs\\"+jobName+"\\builds\\"+build_number+"\\archive\\FailureReason"
+def errormsg
+new File( sampleval ).eachLine { line ->
+    errormsg=line
+}
+def vars = [Change_set: ''+ChangeSet, User_name: ''+User,  Date: ''+Date, ErrorMsg: ''+errormsg]
+build.environments.add(0, Environment.create(new EnvVars(vars)))
